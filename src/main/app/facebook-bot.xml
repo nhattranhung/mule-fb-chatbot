@@ -36,9 +36,12 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 ---
 payload]]></dw:set-payload>
                 </dw:transform-message>
-                <choice doc:name="POSTBACK">
-                    <when expression="#[payload.entry[0].messaging[0].message]">
+                <choice doc:name="MESSAGE or POSTBACK">
+                    <when expression="#[!(payload.entry[0].messaging[0].message == null)]">
                         <choice doc:name="Message Text">
+                        	<when expression="#[payload.entry[0].messaging[0].message.text == null]">
+                        		<flow-ref name="echo-response" doc:name="echo-response"/>
+                        	</when>
                             <when expression="#[payload.entry[0].messaging[0].message.text.contains(&quot;template&quot;)]">
                                 <flow-ref name="template-response" doc:name="template-response"/>
                             </when>
@@ -55,6 +58,7 @@ payload]]></dw:set-payload>
                                 <http:query-param paramName="access_token" value="${access_token}"/>
                             </http:request-builder>
                         </http:request>
+                        <logger message="#[payload:java.lang.String]" level="INFO" doc:name="Logger"/>
                     </when>
                     <otherwise>
                         <logger message="POSTBACK - #[payload]" level="INFO" doc:name="Logger"/>
